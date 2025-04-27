@@ -2513,6 +2513,33 @@ void GenerateAnimValues(int pAnimValue, int maxFrames)
         //Printf("remaining frames %i\n", k);
     }
 }*/
+struct frame_num{
+    ubyte frame_valid;
+    ubyte frame_total;
+} ;
+
+string FrameInfoStr(frame_num &f)
+{
+    local string s = byteItoA(f.frame_valid) + '/' + byteItoA(f.frame_total);
+    return s;
+}
+
+string byteItoA(ubyte num){
+    local int tenth = num/10;
+    local int digit = num%10;
+    local string r;
+    SPrintf(r, "%c%c", tenth+48, digit+48);
+    return  r;
+    
+}
+
+string DivideBy256(short value)
+{
+    local float result = value / 256.0;
+    local string s;
+    SPrintf(s, "%.3f", result);
+    return s;
+}
 
 void GenerateAnimValues(int pAnimValue, int maxFrames)
 {
@@ -2527,17 +2554,19 @@ void GenerateAnimValues(int pAnimValue, int maxFrames)
             return;        
 
         FSeek(pCurrentPos);
-        struct {
-            mstudioanimvalue_t animvalue <fgcolor=0x99aaff>;
-            short animation_data[animvalue.num.valid] <fgcolor=0xf0f0ff>;
-        } values;
 
-        pCurrentPos += (values.animvalue.num.valid + 1) * sizeof(short);
-        k -= values.animvalue.num.total;
+        struct {
+            frame_num fnum <hidden=true>;
+            short animation_data[fnum.frame_valid] <read=DivideBy256>;
+        } values <read=FrameInfoStr(fnum)>;
+
+        pCurrentPos += (values.fnum.frame_valid + 1) * sizeof(short);
+        k -= values.fnum.frame_total;
 
         //Printf("remaining frames %i\n", k);
     }
 }
+
 
 void ReadValuePtr(mstudioanim_valueptr_t &valueptr, int maxFrames)
 {
