@@ -2513,13 +2513,15 @@ void GenerateAnimValues(int pAnimValue, int maxFrames)
         //Printf("remaining frames %i\n", k);
     }
 }*/
+
+local char axis[] = "XYZ";
+
 struct frame_num{
     ubyte frame_valid;
     ubyte frame_total;
 } ;
 
-string FrameInfoStr(frame_num &f)
-{
+string FrameInfoStr(frame_num &f){
     local string s = byteItoA(f.frame_valid) + '/' + byteItoA(f.frame_total);
     return s;
 }
@@ -2533,47 +2535,115 @@ string byteItoA(ubyte num){
     
 }
 
-string DivideBy256(short value)
-{
+string StrAnimPos(short value){
     local float result = value / 256.0;
     local string s;
-    SPrintf(s, "%.3f", result);
+    SPrintf(s, "%.4f", result);
     return s;
 }
 
-void GenerateAnimValues(int pAnimValue, int maxFrames)
-{
+string StrAnimRot(short value){
+    local float d = Ceil(value * 0.549316406) / 100.0;
+    local float r = d / 360 * 2 * 3.1415926535;
+    local string deg;
+    local string rad;
+    local string temp;
+    local string s = "            ";
+    local string result;
+
+    SPrintf(deg, "%.2f deg", d);
+    local int align = (11 - Strlen(deg)) * 2;
+    if(align) Strncpy(temp, s,align) ;
+    SPrintf(deg, "%s%s", temp, deg);
+    
+    SPrintf(rad, "%.2f rad", r);
+    align = (12 - Strlen(rad)) * 2;
+    if(align) Strncpy(temp, s,align) ;
+    SPrintf(result, "%s%s%s", deg, temp, rad);
+
+    return result;
+}
+
+//TODO: clean up this mess up
+void displayAnimPos(int idx){
+    switch(idx){
+        case 0:
+            struct {
+                frame_num fnum <hidden=true, fgcolor=0x8888ff>;
+                short animation_data[fnum.frame_valid] <read=StrAnimPos, fgcolor=0xeeeeff>;
+            } values <read=FrameInfoStr(fnum), name="X  ">;
+            break;
+        case 1:
+            struct {
+                frame_num fnum <hidden=true, fgcolor=0x88ff88>;
+                short animation_data[fnum.frame_valid] <read=StrAnimPos, fgcolor=0xeeffee>;
+            } values <read=FrameInfoStr(fnum), name="Y  ">;
+            break;
+        case 2:
+            struct {
+                frame_num fnum <hidden=true, fgcolor=0xff8888>;
+                short animation_data[fnum.frame_valid] <read=StrAnimPos, fgcolor=0xffeeee>;
+            } values <read=FrameInfoStr(fnum), name="Z  ">;
+            break;
+        default:
+            break;
+    }
+}
+
+void displayAnimRot(int idx){
+    switch(idx){
+        case 0:
+            struct {
+                frame_num fnum <hidden=true, fgcolor=0x8888ff>;
+                short animation_data[fnum.frame_valid] <read=StrAnimRot, fgcolor=0xeeeeff>;
+            } values <read=FrameInfoStr(fnum), name="X  ">;
+            break;
+        case 1:
+            struct {
+                frame_num fnum <hidden=true, fgcolor=0x88ff88>;
+                short animation_data[fnum.frame_valid] <read=StrAnimRot, fgcolor=0xeeffee>;
+            } values <read=FrameInfoStr(fnum), name="Y  ">;
+            break;
+        case 2:
+            struct {
+                frame_num fnum <hidden=true, fgcolor=0xff8888>;
+                short animation_data[fnum.frame_valid] <read=StrAnimRot, fgcolor=0xffeeee>;
+            } values <read=FrameInfoStr(fnum), name="Z  ">;
+            break;
+        default:
+            break;
+    }
+}
+void GenerateAnimValues(int pAnimValue, int maxFrames, int idx, int flag){
     local int k = maxFrames;
-    local int pCurrentPos = pAnimValue;    
-
-    //Printf("remaining frames %i\n", k);
-
-    while(ReadUByte(pCurrentPos) <= k)
-    {
+    local int pCurrentPos = pAnimValue; 
+    while(ReadUByte(pCurrentPos) <= k){
         if(ReadUByte(pCurrentPos + 1) == 0)
             return;        
-
         FSeek(pCurrentPos);
-
-        struct {
-            frame_num fnum <hidden=true>;
-            short animation_data[fnum.frame_valid] <read=DivideBy256>;
-        } values <read=FrameInfoStr(fnum)>;
-
+        switch(flag){
+            case 0:
+                displayAnimPos(idx);
+                break;
+            case 1:
+                displayAnimRot(idx);
+                break;
+            case 2:
+            default:
+                displayAnimPos(idx);
+                break;
+        }
         pCurrentPos += (values.fnum.frame_valid + 1) * sizeof(short);
         k -= values.fnum.frame_total;
-
-        //Printf("remaining frames %i\n", k);
     }
 }
 
 
-void ReadValuePtr(mstudioanim_valueptr_t &valueptr, int maxFrames)
-{
-    for(g = 0; g < 3; g++)
-    {
-        if(valueptr.offset[g])
-            GenerateAnimValues(startof(valueptr) + valueptr.offset[g], maxFrames);
+void ReadValuePtr(mstudioanim_valueptr_t &valueptr, int maxFrames, int flag){
+    for(g = 0; g < 3; g++){
+        if(valueptr.offset[g]){
+           GenerateAnimValues(startof(valueptr) + valueptr.offset[g], maxFrames, g, flag);
+        }
     }
 }
 

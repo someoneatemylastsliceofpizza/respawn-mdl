@@ -356,21 +356,21 @@ if(hdr.numlocalanim)
                                                     if(sectionanimheader.flags & STUDIO_ANIM_ANIMROT)
                                                     {
                                                         struct {
-                                                            ReadValuePtr(sectionanimheader.pRotV, animdesc.sectionframes + 1);
+                                                            ReadValuePtr(sectionanimheader.pRotV, animdesc.sectionframes + 1, 1);
                                                         } rot;
                                                     }
                                                     
                                                     if(sectionanimheader.flags & STUDIO_ANIM_ANIMPOS)
                                                     {
                                                         struct {
-                                                            ReadValuePtr(sectionanimheader.pPosV, animdesc.sectionframes + 1);
+                                                            ReadValuePtr(sectionanimheader.pPosV, animdesc.sectionframes + 1, 0);
                                                         } pos;
                                                     }
             
                                                     if(sectionanimheader.flags & STUDIO_ANIM_ANIMSCALE)
                                                     {
                                                         struct {
-                                                            ReadValuePtr(sectionanimheader.pScaleV, animdesc.sectionframes + 1);
+                                                            ReadValuePtr(sectionanimheader.pScaleV, animdesc.sectionframes + 1, 2);
                                                         } scale;
                                                     }
                 
@@ -398,21 +398,21 @@ if(hdr.numlocalanim)
                                         if(animheader.flags & STUDIO_ANIM_ANIMROT)
                                         {
                                             struct {
-                                                ReadValuePtr(animheader.pRotV, animdesc.numframes);
+                                                ReadValuePtr(animheader.pRotV, animdesc.numframes, 1);
                                             } rot;
                                         }
                                         
                                         if(animheader.flags & STUDIO_ANIM_ANIMPOS)
                                         {
                                             struct {
-                                                ReadValuePtr(animheader.pPosV, animdesc.numframes);
+                                                ReadValuePtr(animheader.pPosV, animdesc.numframes, 0);
                                             } pos;
                                         }
 
                                         if(animheader.flags & STUDIO_ANIM_ANIMSCALE)
                                         {
                                             struct {
-                                                ReadValuePtr(animheader.pScaleV, animdesc.numframes);
+                                                ReadValuePtr(animheader.pScaleV, animdesc.numframes, 2);
                                             } scale;
                                         }
             
