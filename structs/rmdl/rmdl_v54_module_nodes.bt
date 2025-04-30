@@ -18,37 +18,30 @@
 
 // setup nodes, not fully understood
 // nodes have names
+local int i_2 = 0;
 
-struct nodedata_t
-{
-    short unk; // uses count?
-    short unk1; // seq/anim idx?
+struct nodedata_t{ // transition anim
+    short tonode; // node index
+    short seq; // seq index (rrig rson)
+} ;
+
+struct node_t{
+    local string name = ReadString(startof(hdr) + nodename[i]);
+    int count <hidden=true>; // number of datas
+    for(i_2 = 0; i_2 < count; i_2++) nodedata_t data <read=Str("%d To %s", this.seq, ReadString(startof(hdr) + nodename[this.tonode - 1])), write=SScanf(value, "%d/%d", this.seq, this.tonode)>;
 };
 
-struct node_t
-{
-    int count; // number of datas
-
-    if(count)
-    {
-        nodedata_t data[count];
-    }
-};
-
-if(hdr.numlocalnodes > 0)
-{
+if(hdr.numlocalnodes > 0){
     FSeek(hdr.localnodenameindex);
     int nodename[hdr.numlocalnodes] <bgcolor=cDkYellow, read=ReadString(startof(hdr) + this)>;
     
     FSeek(hdr.nodedataindexindex);
-    int nodedataindex[hdr.numlocalnodes] <bgcolor=cYellow>;
+    int nodedataindex[hdr.numlocalnodes] <bgcolor=cYellow, comment="Transition anim">;
 
     struct {
-        for(i = 0; i < hdr.numlocalnodes; i++)
-        {
-
+        for(i = 0; i < hdr.numlocalnodes; i++){   
             FSeek(nodedataindex[i]);
-            node_t node <bgcolor=cDkYellow>;
+            node_t node <bgcolor=cDkYellow, read=Str("%s (%d)", this.name, this.count), write=SScanf(value, "%d", this.count)>;
         }
     } node_data;
 }
