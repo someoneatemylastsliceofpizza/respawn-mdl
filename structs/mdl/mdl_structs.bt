@@ -2477,172 +2477,113 @@ union mstudioanimvalue_t
 mstudioanimvalue_t ReadAnimValue(int pPos)
 {
     local mstudioanimvalue_t studioanimvalue;
-
     studioanimvalue.value = ReadShort(pPos);
-    
-    //value.num.valid = ReadUByte(pPos);
-    //value.num.total = ReadUByte(pPos + 1);
 
     return studioanimvalue;
 }
 
-/*struct animation_value_set(int isApex)
-{
-    mstudioanimvalue_t animvalue <fgcolor=0x99aaff>;
-    short animation_data[animvalue.num.valid ? animvalue.num.valid - (1 * isApex) : animvalue.num.total] <fgcolor=0xf0f0ff>;
+struct animdata_t {
+    local float sc = scale[gl_xyz];
+    local float secondcolor = gl_secondColor[gl_xyz];
+    short animdat <hidden=true>;
 };
 
-void GenerateAnimValues(int pAnimValue, int maxFrames)
-{
-    local int k = maxFrames;
-    local int pCurrentPos = pAnimValue;    
+typedef float vec3[3] <read=Str("<%g %g %g>",this[0],this[1],this[2])>;
 
-    //Printf("remaining frames %i\n", k);
+local char caxis[] = "xyz";
+local int gl_xyz = 0;
+local int gl_flag = 0;
+local vec3 gl_mainColor;
+gl_mainColor[0] = 0x6666ff;
+gl_mainColor[1] = 0x66ff66;
+gl_mainColor[2] = 0xff6666;
+local vec3 gl_secondColor;
+gl_secondColor[0] = 0xccccee;
+gl_secondColor[1] = 0xcceecc;
+gl_secondColor[2] = 0xeecccc;
 
-    while((ReadUByte(pCurrentPos) <= (k + isApex)) && (k > 0))
-    {
-        if(ReadUByte(pCurrentPos + 1) == 0)
-            return;        
-
-        FSeek(pCurrentPos);
-        animation_value_set values(isApex);
-
-        pCurrentPos += (values.animvalue.num.valid + (1 - isApex)) * sizeof(short);
-        k -= values.animvalue.num.total;
-
-        //Printf("remaining frames %i\n", k);
-    }
-}*/
-
-local char axis[] = "XYZ";
-
-struct frame_num{
-    ubyte frame_valid;
-    ubyte frame_total;
-} ;
-
-string FrameInfoStr(frame_num &f){
-    local string s = byteItoA(f.frame_valid) + '/' + byteItoA(f.frame_total);
-    return s;
-}
-
-string byteItoA(ubyte num){
-    local int tenth = num/10;
-    local int digit = num%10;
-    local string r;
-    SPrintf(r, "%c%c", tenth+48, digit+48);
-    return  r;
-    
-}
-
-string StrAnimPos(short value){
-    local float result = value / 256.0;
-    local string s;
-    SPrintf(s, "%.4f", result);
-    return s;
-}
-
-string StrAnimRot(short value){
-    local float d = Ceil(value * 0.549316406) / 100.0;
-    local float r = d / 360 * 2 * 3.1415926535;
-    local string deg;
-    local string rad;
-    local string temp;
-    local string s = "            ";
+string displayRaw(animdata_t &f){
     local string result;
-
-    SPrintf(deg, "%.2f deg", d);
-    local int align = (11 - Strlen(deg)) * 2;
-    if(align) Strncpy(temp, s,align) ;
-    SPrintf(deg, "%s%s", temp, deg);
-    
-    SPrintf(rad, "%.2f rad", r);
-    align = (12 - Strlen(rad)) * 2;
-    if(align) Strncpy(temp, s,align) ;
-    SPrintf(result, "%s%s%s", deg, temp, rad);
-
+    SPrintf(result, "%d", f.animdat);
     return result;
 }
 
-//TODO: clean up this mess up
-void displayAnimPos(int idx){
-    switch(idx){
-        case 0:
-            struct {
-                frame_num fnum <hidden=true, fgcolor=0x8888ff>;
-                short animation_data[fnum.frame_valid] <read=StrAnimPos, fgcolor=0xeeeeff>;
-            } values <read=FrameInfoStr(fnum), name="X  ">;
-            break;
-        case 1:
-            struct {
-                frame_num fnum <hidden=true, fgcolor=0x88ff88>;
-                short animation_data[fnum.frame_valid] <read=StrAnimPos, fgcolor=0xeeffee>;
-            } values <read=FrameInfoStr(fnum), name="Y  ">;
-            break;
-        case 2:
-            struct {
-                frame_num fnum <hidden=true, fgcolor=0xff8888>;
-                short animation_data[fnum.frame_valid] <read=StrAnimPos, fgcolor=0xffeeee>;
-            } values <read=FrameInfoStr(fnum), name="Z  ">;
-            break;
-        default:
-            break;
-    }
+string displayPos(animdata_t &f){
+    local string result;
+    local float pos = f.animdat * f.sc;
+    SPrintf(result, "%.4f", pos);
+    return result;
 }
 
-void displayAnimRot(int idx){
-    switch(idx){
-        case 0:
-            struct {
-                frame_num fnum <hidden=true, fgcolor=0x8888ff>;
-                short animation_data[fnum.frame_valid] <read=StrAnimRot, fgcolor=0xeeeeff>;
-            } values <read=FrameInfoStr(fnum), name="X  ">;
-            break;
-        case 1:
-            struct {
-                frame_num fnum <hidden=true, fgcolor=0x88ff88>;
-                short animation_data[fnum.frame_valid] <read=StrAnimRot, fgcolor=0xeeffee>;
-            } values <read=FrameInfoStr(fnum), name="Y  ">;
-            break;
-        case 2:
-            struct {
-                frame_num fnum <hidden=true, fgcolor=0xff8888>;
-                short animation_data[fnum.frame_valid] <read=StrAnimRot, fgcolor=0xffeeee>;
-            } values <read=FrameInfoStr(fnum), name="Z  ">;
-            break;
-        default:
-            break;
-    }
+string displayRot(animdata_t &f){
+    local string deg, rad, result;
+    local int align = 0;
+    local float d = Ceil(f.animdat * f.sc * 36000 / 6.28318530718) / 100; //using default value instead of real rotscale
+    local float r = d / 360 * 2 * 3.1415926535;
+
+    SPrintf(deg, "%.2f deg", d);
+    align = (11.5 - Strlen(deg)) * 2.85;
+    SPrintf(deg, "%*.2f deg", align, d);
+    
+    SPrintf(rad, "%.2f rad", r);
+    align = (11.5 - Strlen(rad)) * 2.85;
+    SPrintf(rad, "%*.2f rad", align, r);
+    
+    SPrintf(result, "%s %s", deg, rad);
+    return result;
 }
-void GenerateAnimValues(int pAnimValue, int maxFrames, int idx, int flag){
+
+void writePos(animdata_t &f, string s){
+    local float inp_val = Atof(s);
+    f.animdat = (short)(inp_val / f.sc);
+}
+
+void writeRot(animdata_t &f, string s){
+    local float inp_val = Atof(s);
+    f.animdat = (short)(inp_val * 3.1415926535 / f.sc * 2 / 360);
+}
+
+void GenerateAnimValues(int pAnimValue, int maxFrames, int idx, int flag, vec3 scale){
     local int k = maxFrames;
-    local int pCurrentPos = pAnimValue; 
+    local int pCurrentPos = pAnimValue;
+    gl_xyz = idx;
+    gl_flag = flag;
     while(ReadUByte(pCurrentPos) <= k){
         if(ReadUByte(pCurrentPos + 1) == 0)
             return;        
         FSeek(pCurrentPos);
-        switch(flag){
-            case 0:
-                displayAnimPos(idx);
-                break;
-            case 1:
-                displayAnimRot(idx);
-                break;
-            case 2:
-            default:
-                displayAnimPos(idx);
-                break;
-        }
-        pCurrentPos += (values.fnum.frame_valid + 1) * sizeof(short);
-        k -= values.fnum.frame_total;
+        struct  {
+            local string name = caxis[gl_xyz] + "   ";
+            struct {
+                local float maincolor = gl_mainColor[gl_xyz];
+                ubyte valid ;
+                ubyte total ;
+            } fnum <hidden=true, fgcolor=maincolor>;
+            
+            switch(gl_flag){
+                case 0:
+                    for(i_1 = 0; i_1 < fnum.valid;i_1++) animdata_t frame <read=displayPos, write=writePos, fgcolor=this.secondcolor>;
+                    break;
+                case 1:
+                    for(i_1 = 0; i_1 < fnum.valid;i_1++) animdata_t frame <read=displayRot, write=writeRot, fgcolor=this.secondcolor>;
+                    break;
+                default:
+                    for(i_1 = 0; i_1 < fnum.valid;i_1++) animdata_t frame <read=displayPos, write=Sscanf(value, "%f", this.animvalue), fgcolor=this.secondcolor>;
+                    break;
+            }
+        } values <read=Str("%d/%d", this.fnum.valid, this.fnum.total), name=Str("%s   ", name)>;
+     
+
+        pCurrentPos += (values.fnum.valid + 1) * sizeof(short);
+        k -= values.fnum.total;
     }
 }
 
 
-void ReadValuePtr(mstudioanim_valueptr_t &valueptr, int maxFrames, int flag){
+void ReadValuePtr(mstudioanim_valueptr_t &valueptr, int maxFrames, int flag, vec3 scale){
     for(g = 0; g < 3; g++){
         if(valueptr.offset[g]){
-           GenerateAnimValues(startof(valueptr) + valueptr.offset[g], maxFrames, g, flag);
+           GenerateAnimValues(startof(valueptr) + valueptr.offset[g], maxFrames, g, flag, scale);
         }
     }
 }
@@ -3993,3 +3934,5 @@ struct mstudionodedata
 {
     byte nodedata[hdr.numlocalnodes];
 };
+
+typedef float vec3[3] <read=Str("<%g %g %g>",this[0],this[1],this[2])>;

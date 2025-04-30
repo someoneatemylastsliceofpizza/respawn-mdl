@@ -43,5 +43,5 @@ if(hdr.numskinfamilies)
 {
     struct {
         short texture[hdr.numskinref] <read=ReadString(startof(textures[this]) + textures[this].sznameindex)>;
-    } skingroup[hdr.numskinfamilies] <bgcolor=cDkGreen>;
+    } skingroup[hdr.numskinfamilies] <optimize=false, bgcolor=cDkGreen>;
 }

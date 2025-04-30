@@ -60,7 +60,7 @@ if(hdr.numlocalseq)
                 mstudioiklock_t iklock[seqdesc.numiklocks] <bgcolor=0x88CC22>;
 
                 FSeek(startof(seqdesc) + seqdesc.animindexindex);
-                short blendgroup[seqdesc.groupsize[0] * seqdesc.groupsize[1]] <read=ReadString(startof(animdesc[this]) + animdesc[this].sznameindex), bgcolor=0xffff00>;
+                short blendgroup[seqdesc.groupsize[0] * seqdesc.groupsize[1]] <read=ReadString(gl_animdesc_sznameindex[this]), bgcolor=0xffff00>;
 
                 if(hdr.version > 48)
                 {
