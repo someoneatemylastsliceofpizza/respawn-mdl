@@ -38,7 +38,7 @@ struct node_t
 if(hdr.numlocalnodes > 0)
 {
     FSeek(hdr.localnodenameindex);
-    int nodename[hdr.numlocalnodes] <bgcolor=cDkYellow, read=ReadString(startof(hdr) + this.sznameindex)>;
+    int nodename[hdr.numlocalnodes] <bgcolor=cDkYellow, read=ReadString(startof(hdr) + this)>;
     
     FSeek(hdr.nodedataindexindex);
     int nodedataindex[hdr.numlocalnodes] <bgcolor=cYellow>;
