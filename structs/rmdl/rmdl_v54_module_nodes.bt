@@ -36,12 +36,12 @@ if(hdr.numlocalnodes > 0){
     int nodename[hdr.numlocalnodes] <bgcolor=cDkYellow, read=ReadString(startof(hdr) + this)>;
     
     FSeek(hdr.nodedataindexindex);
-    int nodedataindex[hdr.numlocalnodes] <bgcolor=cYellow, comment="Transition anim">;
+    int nodedataindex[hdr.numlocalnodes] <bgcolor=cYellow>;
 
     struct {
         for(i = 0; i < hdr.numlocalnodes; i++){   
             FSeek(nodedataindex[i]);
             node_t node <bgcolor=cDkYellow, read=Str("%s (%d)", this.name, this.count), write=SScanf(value, "%d", this.count)>;
         }
-    } node_data;
+    } node_data <comment="Transition anim">;
 }
