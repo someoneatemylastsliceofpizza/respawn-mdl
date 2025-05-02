@@ -65,6 +65,11 @@ FSeek(startof(seqdesc) + seqdesc.animindexindex);
 int blends[seqdesc[si].groupsize[0] * seqdesc[si].groupsize[1]] <bgcolor=0xffff00>;
 
 local int valueOffset = 0;
+local int datasize[13];
+local int finaldatasize[13];
+local int flagcount = 0;
+local int tempvalue1 = 0;
+local int totalflags = 0;
 for(k = 0; k < numanims; k++)
 {
     FSeek(startof(seqdesc) + blends[k]);
@@ -80,7 +85,7 @@ for(k = 0; k < numanims; k++)
                     //local int sectionlength = Ceil(((float)animdesc.numframes) / (float)animdesc.sectionframes) + 1;
                     local int sectionlength = Ceil(((float)animdesc.numframes - 1) / (float)animdesc.sectionframes + 1);
 
-                    Printf("%f\n%i\n", ((float)animdesc.numframes - 1) / (float)animdesc.sectionframes + 1, sectionlength);
+                    //Printf("%f\n%i\n", ((float)animdesc.numframes - 1) / (float)animdesc.sectionframes + 1, sectionlength);
 
                     FSeek(startof(animdesc[k]) + animdesc[k].sectionindex);
                     mstudioanimsections_t_v53 sectionindexes[sectionlength] <bgcolor=cLtBlue>;
@@ -97,76 +102,96 @@ for(k = 0; k < numanims; k++)
                                 {
                                     if(flagarray.boneflag[j].STUDIO_ANIM_POS_54 || flagarray.boneflag[j].STUDIO_ANIM_ROT_54 || flagarray.boneflag[j].STUDIO_ANIM_SCALE_54)
                                     {
-                                        mstudio_rle_anim_t_v54 sectionanimheader <bgcolor=0x771122>;
-                                        
-                                        if(sectionanimheader.flags & STUDIO_ANIM_ANIMPOS_54)
-                                        {
-                                            valueOffset = startof(sectionanimheader.animpos) + (sectionanimheader.animpos.offset);
-                                            FSeek(valueOffset);
-
-                                            struct {
-                                                if(sectionanimheader.animpos.flags & STUDIO_ANIMPTR_X)
-                                                    mstudioanimvalue_t x <fgcolor=cLtGreen>;
-
-                                                FSeek(valueOffset + (sectionanimheader.animpos.axisIdx1 * sizeof(mstudioanimvalue_t)));
-
-                                                if(sectionanimheader.animpos.flags & STUDIO_ANIMPTR_Y)
-                                                    mstudioanimvalue_t y <fgcolor=cLtGreen>;
-
-                                                FSeek(valueOffset + (sectionanimheader.animpos.axisIdx2 * sizeof(mstudioanimvalue_t)));
-
-                                                if(sectionanimheader.animpos.flags & STUDIO_ANIMPTR_Z)
-                                                    mstudioanimvalue_t z <fgcolor=cLtGreen>;
-
-                                            } posvalues;
+                                        struct {
+                                            local int boneiter = j;
+                                            mstudio_rle_anim_t_v54 animheader <bgcolor=cBlue>;
                                             
-                                        }
-
-                                        if(sectionanimheader.flags & STUDIO_ANIM_ANIMROT_54)
-                                        {
-                                            valueOffset = startof(sectionanimheader.animrot) + (sectionanimheader.animrot.offset);
-                                            FSeek(valueOffset);
-
-                                            struct {
-                                                if(sectionanimheader.animrot.flags & STUDIO_ANIMPTR_X)
-                                                    mstudioanimvalue_t x <fgcolor=cLtRed>;
-
-                                                FSeek(valueOffset + (sectionanimheader.animrot.axisIdx1 * sizeof(mstudioanimvalue_t)));
-
-                                                if(sectionanimheader.animrot.flags & STUDIO_ANIMPTR_Y)
-                                                    mstudioanimvalue_t y <fgcolor=cLtRed>;
-
-                                                FSeek(valueOffset + (sectionanimheader.animrot.axisIdx2 * sizeof(mstudioanimvalue_t)));
-
-                                                if(sectionanimheader.animrot.flags & STUDIO_ANIMPTR_Z)
-                                                    mstudioanimvalue_t z <fgcolor=cLtRed>;
-
-                                            } rotvalues;
-                                        }
-
-                                        if(sectionanimheader.flags & STUDIO_ANIM_ANIMSCALE_54)
-                                        {
-                                            valueOffset = startof(sectionanimheader.animscale) + (sectionanimheader.animscale.offset);
-                                            FSeek(valueOffset);
-
-                                            struct {
-                                                if(sectionanimheader.animscale.flags & STUDIO_ANIMPTR_X)
-                                                    mstudioanimvalue_t x <fgcolor=cLtYellow>;
-
-                                                FSeek(valueOffset + (sectionanimheader.animscale.axisIdx1 * sizeof(mstudioanimvalue_t)));
-
-                                                if(sectionanimheader.animscale.flags & STUDIO_ANIMPTR_Y)
-                                                    mstudioanimvalue_t y <fgcolor=cLtYellow>;
-
-                                                FSeek(valueOffset + (sectionanimheader.animscale.axisIdx2 * sizeof(mstudioanimvalue_t)));
-
-                                                if(sectionanimheader.animscale.flags & STUDIO_ANIMPTR_Z)
-                                                    mstudioanimvalue_t z <fgcolor=cLtYellow>;
-
-                                            } scalevalues;
-                                        }
-
-                                        FSeek(startof(sectionanimheader) + sectionanimheader.size);
+                                            // what am i doing here...
+                                            flagcount = 0;
+                                            if(animheader.flags & STUDIO_ANIM_ANIMPOS_54) flagcount += popCount(animheader.animpos.flags);
+                                            if(animheader.flags & STUDIO_ANIM_ANIMROT_54) flagcount += popCount(animheader.animrot.flags);
+                                            if(animheader.flags & STUDIO_ANIM_ANIMSCALE_54) flagcount += popCount(animheader.animscale.flags);
+                                            totalflags = flagcount;
+                                            
+                                            if(animheader.flags & STUDIO_ANIM_ANIMPOS_54) acquiringdatasize(animheader.animpos);
+                                            if(animheader.flags & STUDIO_ANIM_ANIMROT_54) acquiringdatasize(animheader.animrot);
+                                            if(animheader.flags & STUDIO_ANIM_ANIMSCALE_54) acquiringdatasize(animheader.animscale);
+                                            
+                                            datasize[flagcount] = startof(animheader) + animheader.size + 2;
+                                            if(popCount(animheader.flags)){
+                                                for(tempvalue1=totalflags-1;tempvalue1>=0;tempvalue1--) finaldatasize[totalflags - tempvalue1 - 1] = (datasize[tempvalue1] - datasize[tempvalue1 + 1]) / 2 - 1;
+                                                //for(tempvalue1=0;tempvalue1<sizeof(datasize)/4;tempvalue1++) Printf("  %d", finaldatasize[tempvalue1]);
+                                                //Printf("\n");
+                                            }
+                                            
+                                            if(animheader.flags & STUDIO_ANIM_ANIMPOS_54){
+                                                valueOffset = startof(animheader.animpos) + (animheader.animpos.offset);
+                                                FSeek(valueOffset);
+                                                struct {
+                                                    if(animheader.animpos.flags & STUDIO_ANIMPTR_X){
+                                                        gl_xyz = 0;
+                                                        animvalue_t x <read=Str("%d/%d", num.unk, num.unk1), bgcolor=0x4547481>;
+                                                    }
+                                                    FSeek(valueOffset + (animheader.animpos.axisIdx1 * sizeof(mstudioanimvalue_t)));
+                                                    if(animheader.animpos.flags & STUDIO_ANIMPTR_Y){
+                                                        gl_xyz = 1;
+                                                        animvalue_t y <read=Str("%d/%d", num.unk, num.unk1), bgcolor=0x547481>;
+                                                    }
+                                                    FSeek(valueOffset + (animheader.animpos.axisIdx2 * sizeof(mstudioanimvalue_t)));
+                                                    if(animheader.animpos.flags & STUDIO_ANIMPTR_Z){
+                                                        gl_xyz = 2;
+                                                        animvalue_t z <read=Str("%d/%d", num.unk, num.unk1), bgcolor=0x547481>;
+                                                    }
+                                                } pos;
+                                            }
+                                            if(animheader.flags & STUDIO_ANIM_ANIMROT_54){
+                                                valueOffset = startof(animheader.animrot) + (animheader.animrot.offset);
+                                                FSeek(valueOffset);
+                                                struct {
+                                                    if(animheader.animrot.flags & STUDIO_ANIMPTR_X){
+                                                        gl_xyz = 0;
+                                                        animvalue_t x <read=Str("%d/%d", num.unk, num.unk1), bgcolor=0x325261>;
+                                                    }
+                                                    FSeek(valueOffset + (animheader.animrot.axisIdx1 * sizeof(mstudioanimvalue_t)));
+                                                    if(animheader.animrot.flags & STUDIO_ANIMPTR_Y){
+                                                        gl_xyz = 1;
+                                                        animvalue_t y <read=Str("%d/%d", num.unk, num.unk1), bgcolor=0x325261>;
+                                                    }
+                                                    FSeek(valueOffset + (animheader.animrot.axisIdx2 * sizeof(mstudioanimvalue_t)));
+                                                    if(animheader.animrot.flags & STUDIO_ANIMPTR_Z){
+                                                        gl_xyz = 2;
+                                                        animvalue_t z <read=Str("%d/%d", num.unk, num.unk1), bgcolor=0x325261>;
+                                                    }
+                                                } rot;
+                                            }
+                                            if(animheader.flags & STUDIO_ANIM_ANIMSCALE_54){
+                                                valueOffset = startof(animheader.animscale) + (animheader.animscale.offset);
+                                                FSeek(valueOffset);
+                                                struct {
+                                                    if(animheader.animscale.flags & STUDIO_ANIMPTR_X){
+                                                        gl_xyz = 0;
+                                                        animvalue_t x;
+                                                    }
+                                                    FSeek(valueOffset + (animheader.animscale.axisIdx1 * sizeof(mstudioanimvalue_t)));
+                                                    if(animheader.animscale.flags & STUDIO_ANIMPTR_Y){
+                                                        gl_xyz = 1;
+                                                        animvalue_t y;
+                                                    }
+                                                    FSeek(valueOffset + (animheader.animscale.axisIdx2 * sizeof(mstudioanimvalue_t)));
+                                                    if(animheader.animscale.flags & STUDIO_ANIMPTR_Z){
+                                                        gl_xyz = 2;
+                                                        animvalue_t z;
+                                                    }
+                                                } scale;
+                                            }
+                                            
+                                            //Reset values for the next iteration
+                                            for(tempvalue1=0;tempvalue1<sizeof(datasize)/4;tempvalue1++) datasize[tempvalue1] = 0;
+                                            for(tempvalue1=0;tempvalue1<sizeof(datasize)/4;tempvalue1++) finaldatasize[tempvalue1] = 0;
+                                            
+                                        } anim_header_data <read=Str("bone  %d",boneiter)>;
+            
+                                        FSeek(startof(anim_header_data.animheader) + anim_header_data.animheader.size);
                                     }
                                 }
                             } section;
@@ -187,75 +212,93 @@ for(k = 0; k < numanims; k++)
                             if(flagarray.boneflag[j].STUDIO_ANIM_POS_54 || flagarray.boneflag[j].STUDIO_ANIM_ROT_54 || flagarray.boneflag[j].STUDIO_ANIM_SCALE_54)
                             {
                                 struct {
+                                    local int boneiter = j;
                                     mstudio_rle_anim_t_v54 animheader <bgcolor=cBlue>;
-        
-                                    if(animheader.flags & STUDIO_ANIM_ANIMPOS_54)
-                                    {
+                                    
+                                    // what am i doing here...
+                                    flagcount = 0;
+                                    if(animheader.flags & STUDIO_ANIM_ANIMPOS_54) flagcount += popCount(animheader.animpos.flags);
+                                    if(animheader.flags & STUDIO_ANIM_ANIMROT_54) flagcount += popCount(animheader.animrot.flags);
+                                    if(animheader.flags & STUDIO_ANIM_ANIMSCALE_54) flagcount += popCount(animheader.animscale.flags);
+                                    totalflags = flagcount;
+                                    
+                                    if(animheader.flags & STUDIO_ANIM_ANIMPOS_54) acquiringdatasize(animheader.animpos);
+                                    if(animheader.flags & STUDIO_ANIM_ANIMROT_54) acquiringdatasize(animheader.animrot);
+                                    if(animheader.flags & STUDIO_ANIM_ANIMSCALE_54) acquiringdatasize(animheader.animscale);
+                                    
+                                    datasize[flagcount] = startof(animheader) + animheader.size + 2;
+                                    if(popCount(animheader.flags)){
+                                        for(tempvalue1=totalflags-1;tempvalue1>=0;tempvalue1--) finaldatasize[totalflags - tempvalue1 - 1] = (datasize[tempvalue1] - datasize[tempvalue1 + 1]) / 2 - 1;
+                                        //for(tempvalue1=0;tempvalue1<sizeof(datasize)/4;tempvalue1++) Printf("  %d", finaldatasize[tempvalue1]);
+                                        //Printf("\n");
+                                    }
+                                    
+                                    if(animheader.flags & STUDIO_ANIM_ANIMPOS_54){
                                         valueOffset = startof(animheader.animpos) + (animheader.animpos.offset);
                                         FSeek(valueOffset);
-        
                                         struct {
-                                            if(animheader.animpos.flags & STUDIO_ANIMPTR_X)
-                                                mstudioanimvalue_t x <fgcolor=cLtGreen>;
-        
+                                            if(animheader.animpos.flags & STUDIO_ANIMPTR_X){
+                                                gl_xyz = 0;
+                                                animvalue_t x <read=Str("%d/%d", num.unk, num.unk1), bgcolor=0x4547481>;
+                                            }
                                             FSeek(valueOffset + (animheader.animpos.axisIdx1 * sizeof(mstudioanimvalue_t)));
-        
-                                            if(animheader.animpos.flags & STUDIO_ANIMPTR_Y)
-                                                mstudioanimvalue_t y <fgcolor=cLtGreen>;
-        
+                                            if(animheader.animpos.flags & STUDIO_ANIMPTR_Y){
+                                                gl_xyz = 1;
+                                                animvalue_t y <read=Str("%d/%d", num.unk, num.unk1), bgcolor=0x547481>;
+                                            }
                                             FSeek(valueOffset + (animheader.animpos.axisIdx2 * sizeof(mstudioanimvalue_t)));
-        
-                                            if(animheader.animpos.flags & STUDIO_ANIMPTR_Z)
-                                                mstudioanimvalue_t z <fgcolor=cLtGreen>;
-        
-                                        } posvalues;
-                                        
+                                            if(animheader.animpos.flags & STUDIO_ANIMPTR_Z){
+                                                gl_xyz = 2;
+                                                animvalue_t z <read=Str("%d/%d", num.unk, num.unk1), bgcolor=0x547481>;
+                                            }
+                                        } pos;
                                     }
-        
-                                    if(animheader.flags & STUDIO_ANIM_ANIMROT_54)
-                                    {
+                                    if(animheader.flags & STUDIO_ANIM_ANIMROT_54){
                                         valueOffset = startof(animheader.animrot) + (animheader.animrot.offset);
                                         FSeek(valueOffset);
-        
                                         struct {
-                                            if(animheader.animrot.flags & STUDIO_ANIMPTR_X)
-                                                mstudioanimvalue_t x <fgcolor=cLtRed>;
-        
+                                            if(animheader.animrot.flags & STUDIO_ANIMPTR_X){
+                                                gl_xyz = 0;
+                                                animvalue_t x <read=Str("%d/%d", num.unk, num.unk1), bgcolor=0x325261>;
+                                            }
                                             FSeek(valueOffset + (animheader.animrot.axisIdx1 * sizeof(mstudioanimvalue_t)));
-        
-                                            if(animheader.animrot.flags & STUDIO_ANIMPTR_Y)
-                                                mstudioanimvalue_t y <fgcolor=cLtRed>;
-        
+                                            if(animheader.animrot.flags & STUDIO_ANIMPTR_Y){
+                                                gl_xyz = 1;
+                                                animvalue_t y <read=Str("%d/%d", num.unk, num.unk1), bgcolor=0x325261>;
+                                            }
                                             FSeek(valueOffset + (animheader.animrot.axisIdx2 * sizeof(mstudioanimvalue_t)));
-        
-                                            if(animheader.animrot.flags & STUDIO_ANIMPTR_Z)
-                                                mstudioanimvalue_t z <fgcolor=cLtRed>;
-        
-                                        } rotvalues;
+                                            if(animheader.animrot.flags & STUDIO_ANIMPTR_Z){
+                                                gl_xyz = 2;
+                                                animvalue_t z <read=Str("%d/%d", num.unk, num.unk1), bgcolor=0x325261>;
+                                            }
+                                        } rot;
                                     }
-        
-                                    if(animheader.flags & STUDIO_ANIM_ANIMSCALE_54)
-                                    {
+                                    if(animheader.flags & STUDIO_ANIM_ANIMSCALE_54){
                                         valueOffset = startof(animheader.animscale) + (animheader.animscale.offset);
                                         FSeek(valueOffset);
-        
                                         struct {
-                                            if(animheader.animscale.flags & STUDIO_ANIMPTR_X)
-                                                mstudioanimvalue_t x <fgcolor=cLtYellow>;
-        
+                                            if(animheader.animscale.flags & STUDIO_ANIMPTR_X){
+                                                gl_xyz = 0;
+                                                animvalue_t x;
+                                            }
                                             FSeek(valueOffset + (animheader.animscale.axisIdx1 * sizeof(mstudioanimvalue_t)));
-        
-                                            if(animheader.animscale.flags & STUDIO_ANIMPTR_Y)
-                                                mstudioanimvalue_t y <fgcolor=cLtYellow>;
-        
+                                            if(animheader.animscale.flags & STUDIO_ANIMPTR_Y){
+                                                gl_xyz = 1;
+                                                animvalue_t y;
+                                            }
                                             FSeek(valueOffset + (animheader.animscale.axisIdx2 * sizeof(mstudioanimvalue_t)));
-        
-                                            if(animheader.animscale.flags & STUDIO_ANIMPTR_Z)
-                                                mstudioanimvalue_t z <fgcolor=cLtYellow>;
-        
-                                        } scalevalues;
+                                            if(animheader.animscale.flags & STUDIO_ANIMPTR_Z){
+                                                gl_xyz = 2;
+                                                animvalue_t z;
+                                            }
+                                        } scale;
                                     }
-                                } anim_header_data;
+                                    
+                                    //Reset values for the next iteration
+                                    for(tempvalue1=0;tempvalue1<sizeof(datasize)/4;tempvalue1++) datasize[tempvalue1] = 0;
+                                    for(tempvalue1=0;tempvalue1<sizeof(datasize)/4;tempvalue1++) finaldatasize[tempvalue1] = 0;
+                                    
+                                } anim_header_data <read=Str("bone  %d",boneiter)>;
     
                                 FSeek(startof(anim_header_data.animheader) + anim_header_data.animheader.size);
                             }

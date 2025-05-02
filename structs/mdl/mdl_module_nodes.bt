@@ -24,5 +24,11 @@ if(hdr.numlocalnodes > 0)
     int localnodename[hdr.numlocalnodes] <bgcolor=cDkYellow, read=ReadString(startof(hdr) + this)>;
 
     FSeek(hdr.localnodeindex);
-    mstudionodedata nodedata[hdr.numlocalnodes] <bgcolor=cLtYellow>;
+    
+    struct {
+        local int i_nodedata=0;
+        for (i_nodedata = 0; i_nodedata < hdr.numlocalnodes; i_nodedata++){
+            mstudionodedata node <read=name, bgcolor=cLtYellow>;
+        }
+    } nodedata;
 }

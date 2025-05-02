@@ -2554,4 +2554,36 @@ struct vgmesh_t
 //=====
 // Misc
 
+int popCount(int x)
+{
+    local int count = 0;
+    while (x)
+    {
+        count += x & 1;
+        x >>= 1;
+    }
+    return count;
+}
 
+struct animvaluenum_t {
+    local float color = gl_mainColor[gl_xyz];
+    ubyte unk;
+    ubyte unk1;
+};
+
+struct animvalue_t{
+    animvaluenum_t num <read=Str("%d/%d", unk, unk1), fgcolor=color>;
+    short data[finaldatasize[flagcount]] ;//<read=Str("%.2f",Ceil((float)(this) * 1.198459e-05 * 36000 / 6.28318530718) / 100)>
+    flagcount ++;
+};
+
+void acquiringdatasize(mstudioanim_valueptr_t_v54 &hdr_anim){
+    valueOffset = startof(hdr_anim) + (hdr_anim.offset);
+    FSeek(valueOffset);
+    if(hdr_anim.flags & STUDIO_ANIMPTR_X) datasize[flagcount--] = FTell() + 2;
+    FSeek(valueOffset + (hdr_anim.axisIdx1 * sizeof(mstudioanimvalue_t)));
+    if(hdr_anim.flags & STUDIO_ANIMPTR_Y) datasize[flagcount--] = FTell() + 2;
+    FSeek(valueOffset + (hdr_anim.axisIdx2 * sizeof(mstudioanimvalue_t)));
+    if(hdr_anim.flags & STUDIO_ANIMPTR_Z) datasize[flagcount--] = FTell() + 2;
+}
+                                        

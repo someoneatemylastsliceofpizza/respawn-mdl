@@ -2559,7 +2559,7 @@ void GenerateAnimValues(int pAnimValue, int maxFrames, int idx, int flag, vec3 s
                 ubyte valid ;
                 ubyte total ;
             } fnum <hidden=true, fgcolor=maincolor>;
-            
+            local int i_1 = 0;
             switch(gl_flag){
                 case 0:
                     for(i_1 = 0; i_1 < fnum.valid;i_1++) animdata_t frame <read=displayPos, write=writePos, fgcolor=this.secondcolor>;
@@ -3932,7 +3932,24 @@ struct mstudionodename_t
 
 struct mstudionodedata
 {
-    byte nodedata[hdr.numlocalnodes];
+    local byte nodedata;
+    local int i_data = 0;
+    //Printf("%s to ", ReadString(localnodename[i_nodedata]));
+    local string name = ReadString(localnodename[i_nodedata]);
+    for(i_data = 0; i_data < hdr.numlocalnodes; i_data++){
+        nodedata = ReadUByte(FTell());
+        if (nodedata != 0){
+            struct {
+                local string name = ReadString(localnodename[nodedata-1]);
+                byte val;
+            } transition_to <read=name>;
+            //Printf("         %s\n", ReadString(startof(hdr) + localnodename[(int)(nodedata - 1)]));
+        }else if(i_nodedata == i_data){
+            byte self;    
+        }else {
+            byte no_transition;    
+        }
+    }
 };
 
 typedef float vec3[3] <read=Str("<%g %g %g>",this[0],this[1],this[2])>;

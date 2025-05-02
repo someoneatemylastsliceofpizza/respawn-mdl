@@ -22,11 +22,6 @@ local int k = 1;
 local int x = 0;
 local int g = 0;
 local int n = 0;
-local int i_1 = 0;
-local int i_2 = 0;
-local int i_3 = 0;
-local int i_4 = 0;
-local int64 gl_animdesc_sznameindex[128];
 
 
 // version before the header is created.
@@ -110,6 +105,7 @@ unsigned char bonebyname[hdr.numbones] <read=ReadString(startof(bones[this]) + b
 if(hdr.numlocalanim)
 {
     struct {
+        local int64 gl_animdesc_sznameindex[256];
         for (i = 0; i < hdr.numlocalanim; ++i)
         {
             FSeek(hdr.localanimindex + (sizeof(mstudioanimdesc_t_v48) * i)); // the same size thankfully
@@ -362,20 +358,32 @@ if(hdr.numlocalanim)
                                                     if(sectionanimheader.flags & STUDIO_ANIM_ANIMROT)
                                                     {
                                                         struct {
-                                                            ReadValuePtr(sectionanimheader.pRotV, animdesc.sectionframes + 1, 1);
+                                                            local vec3 scale;
+                                                            scale[0] = bones[sectionanimheader.bone].rotscale.x;
+                                                            scale[1] = bones[sectionanimheader.bone].rotscale.y;
+                                                            scale[2] = bones[sectionanimheader.bone].rotscale.z;
+                                                            ReadValuePtr(sectionanimheader.pRotV, animdesc.sectionframes + 1, 1, scale);
                                                         } rot;
                                                     }
                                                     
                                                     if(sectionanimheader.flags & STUDIO_ANIM_ANIMPOS)
                                                     {
                                                         struct {
-                                                            ReadValuePtr(sectionanimheader.pPosV, animdesc.sectionframes + 1, 0);
+                                                            local vec3 scale;
+                                                            scale[0] = bones[sectionanimheader.bone].posscale.x;
+                                                            scale[1] = bones[sectionanimheader.bone].posscale.y;
+                                                            scale[2] = bones[sectionanimheader.bone].posscale.z;
+                                                            ReadValuePtr(sectionanimheader.pPosV, animdesc.sectionframes + 1, 0, scale);
                                                         } pos;
                                                     }
             
                                                     if(sectionanimheader.flags & STUDIO_ANIM_ANIMSCALE)
                                                     {
                                                         struct {
+                                                            local vec3 scale;
+                                                            scale[0] = 1;
+                                                            scale[1] = 1;
+                                                            scale[2] = 1;
                                                             ReadValuePtr(sectionanimheader.pScaleV, animdesc.sectionframes + 1, 2);
                                                         } scale;
                                                     }

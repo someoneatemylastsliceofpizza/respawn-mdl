@@ -81,11 +81,15 @@ struct Quaternion48
 	uint16 wneg : 1;
 };
 
+void writeQuat64(uint64 &f, string value){
+    local double result = Atof(value) * 1048576.5 + 1048576;
+    f = (uint64)(result);
+}
 struct Quaternion64
 {
-    uint64 x : 21 <read=Str("%f", (this - 1048576) * (1 / 1048576.5))>;
-    uint64 y : 21 <read=Str("%f", (this - 1048576) * (1 / 1048576.5))>;
-    uint64 z : 21 <read=Str("%f", (this - 1048576) * (1 / 1048576.5))>;
+    uint64 x : 21 <read=Str("%f", (this - 1048576) * (1 / 1048576.5)), write=writeQuat64>;
+    uint64 y : 21 <read=Str("%f", (this - 1048576) * (1 / 1048576.5)), write=writeQuat64>;
+    uint64 z : 21 <read=Str("%f", (this - 1048576) * (1 / 1048576.5)), write=writeQuat64>;
     uint64 wneg : 1;
 
     //  <read=ReadShort(sqrt( 1 - x * x - y * y - z * z ))>
