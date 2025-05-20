@@ -130,17 +130,17 @@ for(k = 0; k < numanims; k++)
                                                 struct {
                                                     if(animheader.animpos.flags & STUDIO_ANIMPTR_X){
                                                         gl_xyz = 0;
-                                                        animvalue_t x <read=Str("%d/%d", num.unk, num.unk1), bgcolor=0x4547481>;
+                                                        animvalue_t x <read=Str("%d/%d", metadata.type, metadata.total), bgcolor=0x4547481>;
                                                     }
                                                     FSeek(valueOffset + (animheader.animpos.axisIdx1 * sizeof(mstudioanimvalue_t)));
                                                     if(animheader.animpos.flags & STUDIO_ANIMPTR_Y){
                                                         gl_xyz = 1;
-                                                        animvalue_t y <read=Str("%d/%d", num.unk, num.unk1), bgcolor=0x547481>;
+                                                        animvalue_t y <read=Str("%d/%d", metadata.type, metadata.total), bgcolor=0x547481>;
                                                     }
                                                     FSeek(valueOffset + (animheader.animpos.axisIdx2 * sizeof(mstudioanimvalue_t)));
                                                     if(animheader.animpos.flags & STUDIO_ANIMPTR_Z){
                                                         gl_xyz = 2;
-                                                        animvalue_t z <read=Str("%d/%d", num.unk, num.unk1), bgcolor=0x547481>;
+                                                        animvalue_t z <read=Str("%d/%d", metadata.type, metadata.total), bgcolor=0x547481>;
                                                     }
                                                 } pos;
                                             }
@@ -150,17 +150,17 @@ for(k = 0; k < numanims; k++)
                                                 struct {
                                                     if(animheader.animrot.flags & STUDIO_ANIMPTR_X){
                                                         gl_xyz = 0;
-                                                        animvalue_t x <read=Str("%d/%d", num.unk, num.unk1), bgcolor=0x325261>;
+                                                        animvalue_t x <read=Str("%d/%d", metadata.type, metadata.total), bgcolor=0x325261>;
                                                     }
                                                     FSeek(valueOffset + (animheader.animrot.axisIdx1 * sizeof(mstudioanimvalue_t)));
                                                     if(animheader.animrot.flags & STUDIO_ANIMPTR_Y){
                                                         gl_xyz = 1;
-                                                        animvalue_t y <read=Str("%d/%d", num.unk, num.unk1), bgcolor=0x325261>;
+                                                        animvalue_t y <read=Str("%d/%d", metadata.type, metadata.total), bgcolor=0x325261>;
                                                     }
                                                     FSeek(valueOffset + (animheader.animrot.axisIdx2 * sizeof(mstudioanimvalue_t)));
                                                     if(animheader.animrot.flags & STUDIO_ANIMPTR_Z){
                                                         gl_xyz = 2;
-                                                        animvalue_t z <read=Str("%d/%d", num.unk, num.unk1), bgcolor=0x325261>;
+                                                        animvalue_t z <read=Str("%d/%d", metadata.type, metadata.total), bgcolor=0x325261>;
                                                     }
                                                 } rot;
                                             }
@@ -228,9 +228,12 @@ for(k = 0; k < numanims; k++)
                                     
                                     datasize[flagcount] = startof(animheader) + animheader.size + 2;
                                     if(popCount(animheader.flags)){
-                                        for(tempvalue1=totalflags-1;tempvalue1>=0;tempvalue1--) finaldatasize[totalflags - tempvalue1 - 1] = (datasize[tempvalue1] - datasize[tempvalue1 + 1]) / 2 - 1;
-                                        //for(tempvalue1=0;tempvalue1<sizeof(datasize)/4;tempvalue1++) Printf("  %d", finaldatasize[tempvalue1]);
-                                        //Printf("\n");
+                                        for(tempvalue1=totalflags-1;tempvalue1>=0;tempvalue1--) {
+                                            
+                                            finaldatasize[totalflags - tempvalue1 - 1] = ((datasize[tempvalue1] - datasize[tempvalue1 + 1]) / 2 - 1); // > 2 ? 20 : 2
+                                            }
+                                        for(tempvalue1=0;tempvalue1<sizeof(datasize)/4;tempvalue1++) Printf("  %d", finaldatasize[tempvalue1]);
+                                        Printf("\n");
                                     }
                                     
                                     if(animheader.flags & STUDIO_ANIM_ANIMPOS_54){
@@ -239,17 +242,17 @@ for(k = 0; k < numanims; k++)
                                         struct {
                                             if(animheader.animpos.flags & STUDIO_ANIMPTR_X){
                                                 gl_xyz = 0;
-                                                animvalue_t x <read=Str("%d/%d", num.unk, num.unk1), bgcolor=0x4547481>;
+                                                animvalue_t x <read=Str("%d/%d", metadata.type, metadata.total), bgcolor=0x4547481>;
                                             }
                                             FSeek(valueOffset + (animheader.animpos.axisIdx1 * sizeof(mstudioanimvalue_t)));
                                             if(animheader.animpos.flags & STUDIO_ANIMPTR_Y){
                                                 gl_xyz = 1;
-                                                animvalue_t y <read=Str("%d/%d", num.unk, num.unk1), bgcolor=0x547481>;
+                                                animvalue_t y <read=Str("%d/%d", metadata.type, metadata.total), bgcolor=0x4547481>;
                                             }
                                             FSeek(valueOffset + (animheader.animpos.axisIdx2 * sizeof(mstudioanimvalue_t)));
                                             if(animheader.animpos.flags & STUDIO_ANIMPTR_Z){
                                                 gl_xyz = 2;
-                                                animvalue_t z <read=Str("%d/%d", num.unk, num.unk1), bgcolor=0x547481>;
+                                                animvalue_t z <read=Str("%d/%d", metadata.type, metadata.total), bgcolor=0x4547481>;
                                             }
                                         } pos;
                                     }
@@ -259,17 +262,17 @@ for(k = 0; k < numanims; k++)
                                         struct {
                                             if(animheader.animrot.flags & STUDIO_ANIMPTR_X){
                                                 gl_xyz = 0;
-                                                animvalue_t x <read=Str("%d/%d", num.unk, num.unk1), bgcolor=0x325261>;
+                                                animvalue_t x <read=Str("%d/%d", metadata.type, metadata.total), bgcolor=0x325261>;
                                             }
                                             FSeek(valueOffset + (animheader.animrot.axisIdx1 * sizeof(mstudioanimvalue_t)));
                                             if(animheader.animrot.flags & STUDIO_ANIMPTR_Y){
                                                 gl_xyz = 1;
-                                                animvalue_t y <read=Str("%d/%d", num.unk, num.unk1), bgcolor=0x325261>;
+                                                animvalue_t y <read=Str("%d/%d", metadata.type, metadata.total), bgcolor=0x325261>;
                                             }
                                             FSeek(valueOffset + (animheader.animrot.axisIdx2 * sizeof(mstudioanimvalue_t)));
                                             if(animheader.animrot.flags & STUDIO_ANIMPTR_Z){
                                                 gl_xyz = 2;
-                                                animvalue_t z <read=Str("%d/%d", num.unk, num.unk1), bgcolor=0x325261>;
+                                                animvalue_t z <read=Str("%d/%d", metadata.type, metadata.total), bgcolor=0x325261>;
                                             }
                                         } rot;
                                     }

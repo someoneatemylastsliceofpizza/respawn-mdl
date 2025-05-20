@@ -2565,25 +2565,36 @@ int popCount(int x)
     return count;
 }
 
-struct animvaluenum_t {
+struct animmetadata_t {
     local float color = gl_mainColor[gl_xyz];
-    ubyte unk;
-    ubyte unk1;
+    ubyte type; //0: signed 16bit perframe value
+                //1: 8bit integer add up previous frame value
+                //else: complex compression
+    ubyte total;
 };
 
+void writeAnimvalue(short &f, string value){
+    f = Atof(value) * 256;
+}
+
 struct animvalue_t{
-    animvaluenum_t num <read=Str("%d/%d", unk, unk1), fgcolor=color>;
-    short data[finaldatasize[flagcount]] ;//<read=Str("%.2f",Ceil((float)(this) * 1.198459e-05 * 36000 / 6.28318530718) / 100)>
+    animmetadata_t metadata <read=Str("%d/%d", type, total), fgcolor=color>;
+    
+    Printf("%d/%d\n", flagcount, finaldatasize[flagcount]);
+    short data[finaldatasize[flagcount]]<read=Str("%d",(short)(this)),write=writeAnimvalue> ;//1.198459e-05
     flagcount ++;
 };
 
 void acquiringdatasize(mstudioanim_valueptr_t_v54 &hdr_anim){
     valueOffset = startof(hdr_anim) + (hdr_anim.offset);
     FSeek(valueOffset);
-    if(hdr_anim.flags & STUDIO_ANIMPTR_X) datasize[flagcount--] = FTell() + 2;
+    if(hdr_anim.flags & STUDIO_ANIMPTR_X) 
+        datasize[flagcount--] = FTell() + 2;
     FSeek(valueOffset + (hdr_anim.axisIdx1 * sizeof(mstudioanimvalue_t)));
-    if(hdr_anim.flags & STUDIO_ANIMPTR_Y) datasize[flagcount--] = FTell() + 2;
+    if(hdr_anim.flags & STUDIO_ANIMPTR_Y) 
+        datasize[flagcount--] = FTell() + 2;
     FSeek(valueOffset + (hdr_anim.axisIdx2 * sizeof(mstudioanimvalue_t)));
-    if(hdr_anim.flags & STUDIO_ANIMPTR_Z) datasize[flagcount--] = FTell() + 2;
+    if(hdr_anim.flags & STUDIO_ANIMPTR_Z) 
+        datasize[flagcount--] = FTell() + 2;
 }
                                         

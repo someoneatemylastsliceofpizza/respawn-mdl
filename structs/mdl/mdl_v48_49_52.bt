@@ -99,13 +99,12 @@ mstudiobbox_t bboxes[hboxCount] <bgcolor=0xa29418, read=ReadString(startof(this)
 // more bones
 FSeek(hdr.bonetablebynameindex);
 unsigned char bonebyname[hdr.numbones] <read=ReadString(startof(bones[this]) + bones[this].sznameindex), bgcolor=cDkGreen>;
-
+local int64 gl_animdesc_sznameindex[256];
 
 // animation
 if(hdr.numlocalanim)
 {
     struct {
-        local int64 gl_animdesc_sznameindex[256];
         for (i = 0; i < hdr.numlocalanim; ++i)
         {
             FSeek(hdr.localanimindex + (sizeof(mstudioanimdesc_t_v48) * i)); // the same size thankfully

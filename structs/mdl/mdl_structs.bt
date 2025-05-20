@@ -1335,7 +1335,6 @@ string ReadBoneFlags(uint flags)
     for(i = 0; i < 32; i++)
     {
         flag = flags & (1 << i);
-
         switch(flag)
         {
         case 0:
@@ -2073,7 +2072,7 @@ string ReadAnimDescFlags(int flags)
             value += "STUDIO_EVENT_CLIENT";
             break;
         case 0x20000:
-            value += "STUDIO_ANIM_UNK";
+            value += "STUDIO_ANIM_VALID";
             break;
         case STUDIO_FRAMEMOVEMENT:
             value += "STUDIO_FRAMEMOVEMENT";

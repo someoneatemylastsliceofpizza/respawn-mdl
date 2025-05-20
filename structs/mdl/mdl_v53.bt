@@ -74,7 +74,10 @@ struct {
 // more bones
 FSeek(hdr.bonetablebynameindex);
 unsigned char bonebyname[hdr.numbones] <read=ReadString(startof(bones[this]) + bones[this].sznameindex), bgcolor=cDkGreen>;
-
+local vec3 scale;
+scale[0] = 1;
+scale[1] = 1;
+scale[2] = 1;
 // animation
 if(hdr.numlocalanim)
 {
@@ -152,21 +155,21 @@ if(hdr.numlocalanim)
                                 if(!(animheader.flags & STUDIO_ANIM_RAWROT_53))
                                 {
                                     struct {
-                                        ReadValuePtr(animheader.pRotV, animdesc.numframes);
+                                        ReadValuePtr(animheader.pRotV, animdesc.numframes, 1, scale);
                                     } rot;
                                 }
                                 
                                 if(!(animheader.flags & STUDIO_ANIM_RAWPOS_53))
                                 {
                                     struct {
-                                        ReadValuePtr(animheader.pPosV, animdesc.numframes);
+                                        ReadValuePtr(animheader.pPosV, animdesc.numframes, 0, scale);
                                     } pos;
                                 }
 
                                 if(!(animheader.flags & STUDIO_ANIM_RAWSCALE_53))
                                 {
                                     struct {
-                                        ReadValuePtr(animheader.pScaleV, animdesc.numframes);
+                                        ReadValuePtr(animheader.pScaleV, animdesc.numframes, 2, scale);
                                     } scale;
                                 }
     
